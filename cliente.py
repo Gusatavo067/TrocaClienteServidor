@@ -16,7 +16,7 @@ def EnvioDeFile(sock):
         print("Arquivo não foi encontrado.")
 
 def main():
-    host = '172.50.4.52'
+    host = '172.50.4.13'
     port = 12345
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
