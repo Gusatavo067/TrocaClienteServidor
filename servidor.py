@@ -27,7 +27,7 @@ def id_Cliente(conn):
         conn.sendall(f'ERROR {str(e)}\n'.encode())
 
 def main():
-    host = 'localhost'
+    host = '172.50.4.13'
     port = 12345
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
