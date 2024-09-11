@@ -1,0 +1,14 @@
+Leiame
+Requisitos:
+
+Python 3.x
+Execução:
+
+Inicie o servidor(Em um terminal): python servidor.py
+Inicie o cliente(Em outro terminal): python cliente.py
+Siga as instruções no cliente para enviar texto ou arquivo.
+Protocolo:
+
+Cliente envia o tipo <text(1)|file(2)> para indicar o tipo de dado.
+Cliente envia DATA <data> com o conteúdo do texto ou arquivo.
+Servidor responde com ACK para confirmação ou ERROR <message> em caso de erro.
