@@ -33,7 +33,7 @@ def main():
 
             resposta = sock.recv(1024).decode()
             print("Resposta do servidor:", resposta)
-            if resposta.startswith("ACK"):
+            if resposta.startswith("Valido"):
                 break
 
 if __name__ == "__main__":
