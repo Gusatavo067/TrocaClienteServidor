@@ -4,6 +4,13 @@ Requisitos:
 Python 3.x
 Execução:
 
+Para a tranferência de text ou file entre maquinas, e necessario que o host receba o 
+endereco de iP da maquina destino e a porta para transferencia, no caso e necessario atribuir ao host no codigo
+do cliente o IP, ex: host = 'IP da maquina' port = 12345 
+
+Para a transferencia na propria maquina, atribuir ao host somente o localhost e porta para transferencia no codigo 
+do cliente, ex: host = 'localhost' port = 12345
+
 Inicie o servidor(Em um terminal): python servidor.py
 Inicie o cliente(Em outro terminal): python cliente.py
 Siga as instruções no cliente para enviar texto ou arquivo.
