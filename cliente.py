@@ -1,87 +1,114 @@
-import socket
-import tkinter as tk
-from tkinter import filedialog, scrolledtext, simpledialog
+import socket  # Importa a biblioteca socket para comunicação via rede
+import tkinter as tk  # Importa o tkinter para criação da interface gráfica
+from tkinter import filedialog, scrolledtext, simpledialog  # Importa funcionalidades específicas do tkinter
 
-def EnvioDeTexto(sock, response_area):
+# Função para enviar texto ao servidor
+def EnvioDeTexto(soquete, area_resposta):
+    # Solicita ao usuário que insira o texto a ser enviado
     texto = simpledialog.askstring("Entrada de Texto", "Digite o texto a ser enviado:")
-    if texto:
+    if texto:  # Se o texto foi inserido
         try:
-            sock.sendall(b'TYPE text\n')
-            sock.sendall(f'DATA {texto}\n'.encode())
-            resposta = sock.recv(1024).decode()
-            response_area.insert(tk.END, f"Resposta do servidor: {resposta}\n")
-        except Exception as e:
-            response_area.insert(tk.END, f"Erro ao enviar texto: {str(e)}\n")
+            # Envia o tipo de dado sendo enviado (texto) ao servidor
+            soquete.sendall(b'TYPE text\n')
+            # Envia o conteúdo do texto
+            soquete.sendall(f'DATA {texto}\n'.encode())
+            # Recebe a resposta do servidor
+            resposta = soquete.recv(1024).decode()
+            # Exibe a resposta na área de resposta da interface gráfica
+            area_resposta.insert(tk.END, f"Resposta do servidor: {resposta}\n")
+        except Exception as e:  # Em caso de erro
+            area_resposta.insert(tk.END, f"Erro ao enviar texto: {str(e)}\n")
 
-def EnvioDeFile(sock, response_area):
-    file_caminho = filedialog.askopenfilename()
-    if file_caminho:
+# Função para enviar um arquivo ao servidor
+def EnvioDeArquivo(soquete, area_resposta):
+    # Abre um diálogo para o usuário selecionar o arquivo
+    caminho_arquivo = filedialog.askopenfilename()
+    if caminho_arquivo:  # Se o arquivo foi selecionado
         try:
-            with open(file_caminho, 'rb') as file:
-                contem = file.read()
-            sock.sendall(b'TYPE file\n')
-            sock.sendall(b'DATA ' + contem + b'\n')
-            resposta = sock.recv(1024).decode()
-            response_area.insert(tk.END, f"Resposta do servidor: {resposta}\n")
-        except FileNotFoundError:
-            response_area.insert(tk.END, "Arquivo não foi encontrado.\n")
-        except Exception as e:
-            response_area.insert(tk.END, f"Erro ao enviar arquivo: {str(e)}\n")
+            # Abre o arquivo no modo de leitura binária
+            with open(caminho_arquivo, 'rb') as arquivo:
+                conteudo = arquivo.read()  # Lê o conteúdo do arquivo
+            # Envia o tipo de dado sendo enviado (arquivo) ao servidor
+            soquete.sendall(b'TYPE file\n')
+            # Envia o conteúdo do arquivo
+            soquete.sendall(b'DATA ' + conteudo + b'\n')
+            # Recebe a resposta do servidor
+            resposta = soquete.recv(1024).decode()
+            # Exibe a resposta na área de resposta da interface gráfica
+            area_resposta.insert(tk.END, f"Resposta do servidor: {resposta}\n")
+        except FileNotFoundError:  # Se o arquivo não foi encontrado
+            area_resposta.insert(tk.END, "Arquivo não foi encontrado.\n")
+        except Exception as e:  # Em caso de erro
+            area_resposta.insert(tk.END, f"Erro ao enviar arquivo: {str(e)}\n")
 
-class ClientApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Cliente")
+# Classe que representa a aplicação cliente
+class AppCliente:
+    def __init__(self, janela_raiz):
+        self.janela_raiz = janela_raiz
+        self.janela_raiz.title("Cliente")  # Define o título da janela
         
-        self.host_label = tk.Label(root, text="Host:")
-        self.host_label.pack(padx=10, pady=5)
+        # Rótulo para o campo de entrada do host
+        self.rotulo_host = tk.Label(janela_raiz, text="Host:")
+        self.rotulo_host.pack(padx=10, pady=5)
         
-        self.host_entry = tk.Entry(root, width=50)
-        self.host_entry.pack(padx=10, pady=5)
+        # Campo de entrada para o host
+        self.entrada_host = tk.Entry(janela_raiz, width=50)
+        self.entrada_host.pack(padx=10, pady=5)
         
-        self.port_label = tk.Label(root, text="Porta:")
-        self.port_label.pack(padx=10, pady=5)
+        # Rótulo para o campo de entrada da porta
+        self.rotulo_porta = tk.Label(janela_raiz, text="Porta:")
+        self.rotulo_porta.pack(padx=10, pady=5)
         
-        self.port_entry = tk.Entry(root, width=50)
-        self.port_entry.pack(padx=10, pady=5)
+        # Campo de entrada para a porta
+        self.entrada_porta = tk.Entry(janela_raiz, width=50)
+        self.entrada_porta.pack(padx=10, pady=5)
         
-        self.connect_button = tk.Button(root, text="Conectar", command=self.connect_to_server)
-        self.connect_button.pack(padx=10, pady=5)
+        # Botão para conectar ao servidor
+        self.botao_conectar = tk.Button(janela_raiz, text="Conectar", command=self.conectar_ao_servidor)
+        self.botao_conectar.pack(padx=10, pady=5)
         
-        self.text_button = tk.Button(root, text="Enviar Texto", command=self.enviar_text)
-        self.text_button.pack(padx=10, pady=5)
+        # Botão para enviar texto ao servidor
+        self.botao_texto = tk.Button(janela_raiz, text="Enviar Texto", command=self.enviar_texto)
+        self.botao_texto.pack(padx=10, pady=5)
         
-        self.file_button = tk.Button(root, text="Enviar Arquivo", command=self.enviar_file)
-        self.file_button.pack(padx=10, pady=5)
+        # Botão para enviar arquivo ao servidor
+        self.botao_arquivo = tk.Button(janela_raiz, text="Enviar Arquivo", command=self.enviar_arquivo)
+        self.botao_arquivo.pack(padx=10, pady=5)
         
-        self.response_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
-        self.response_area.pack(padx=10, pady=10)
+        # Área para exibir as respostas do servidor
+        self.area_resposta = scrolledtext.ScrolledText(janela_raiz, wrap=tk.WORD, width=50, height=10)
+        self.area_resposta.pack(padx=10, pady=10)
         
-        self.sock = None
+        self.soquete = None  # Inicialmente, o socket é None, indicando que não está conectado
 
-    def connect_to_server(self):
-        host = self.host_entry.get()
-        port = int(self.port_entry.get())
+    # Função para conectar ao servidor
+    def conectar_ao_servidor(self):
+        host = self.entrada_host.get()  # Obtém o host inserido pelo usuário
+        porta = int(self.entrada_porta.get())  # Obtém a porta inserida pelo usuário
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((host, port))
-            self.response_area.insert(tk.END, "Conectado ao servidor.\n")
-        except Exception as e:
-            self.response_area.insert(tk.END, f"Erro ao conectar ao servidor: {str(e)}\n")
+            # Cria um socket e conecta ao servidor
+            self.soquete = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.soquete.connect((host, porta))
+            self.area_resposta.insert(tk.END, "Conectado ao servidor.\n")  # Exibe mensagem de sucesso
+        except Exception as e:  # Em caso de erro ao conectar
+            self.area_resposta.insert(tk.END, f"Erro ao conectar ao servidor: {str(e)}\n")
 
-    def enviar_text(self):
-        if self.sock:
-            EnvioDeTexto(self.sock, self.response_area)
+    # Função para enviar texto ao servidor
+    def enviar_texto(self):
+        if self.soquete:  # Verifica se está conectado ao servidor
+            EnvioDeTexto(self.soquete, self.area_resposta)  # Chama a função para enviar o texto
         else:
-            self.response_area.insert(tk.END, "Erro: Não conectado ao servidor.\n")
+            self.area_resposta.insert(tk.END, "Erro: Não conectado ao servidor.\n")
 
-    def enviar_file(self):
-        if self.sock:
-            EnvioDeFile(self.sock, self.response_area)
+    # Função para enviar arquivo ao servidor
+    def enviar_arquivo(self):
+        if self.soquete:  # Verifica se está conectado ao servidor
+            EnvioDeArquivo(self.soquete, self.area_resposta)  # Chama a função para enviar o arquivo
         else:
-            self.response_area.insert(tk.END, "Erro: Não conectado ao servidor.\n")
+            self.area_resposta.insert(tk.END, "Erro: Não conectado ao servidor.\n")
 
+# Função principal para iniciar a interface gráfica
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = ClientApp(root)
-    root.mainloop()
+    janela_raiz = tk.Tk()  # Cria a janela principal
+    app = AppCliente(janela_raiz)  # Inicializa a aplicação cliente
+    janela_raiz.mainloop()  # Inicia o loop da interface gráfica

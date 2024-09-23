@@ -4,18 +4,28 @@ Requisitos:
 Python 3.x
 Execução:
 
-Para a tranferência de text ou file entre maquinas, e necessario que o host receba o 
-endereco de iP da maquina destino e a porta para transferencia, no caso e necessario atribuir ao host no codigo
-do cliente o IP, ex: host = 'IP da maquina' port = 12345 
-
-Para a transferencia na propria maquina, atribuir ao host somente o localhost e porta para transferencia no codigo 
-do cliente, ex: host = 'localhost' port = 12345
-
-Inicie o servidor(Em um terminal): python servidor.py
-Inicie o cliente(Em outro terminal): python cliente.py
-Siga as instruções no cliente para enviar texto ou arquivo.
-Protocolo:
-
-Cliente envia o tipo <text(1)|file(2)> para indicar o tipo de dado.
-Cliente envia DATA <data> com o conteúdo do texto ou arquivo.
-Servidor responde com Valido para confirmação ou ERROR <message> em caso de erro.
+1. Iniciar o Servidor:
+Execute o código do servidor (servidor.py).
+Quando iniciado, o servidor abrirá uma interface gráfica que mostrará logs sobre as conexões e dados recebidos.
+O servidor ficará escutando na porta 12345 para conexões de clientes.
+Ao pressionar o botão "Iniciar Servidor", ele começa a aceitar conexões de clientes.
+2. Conectar um Cliente:
+Execute o código do cliente (cliente.py).
+O cliente terá uma interface gráfica onde o usuário deve:
+Inserir o endereço IP do servidor no campo "Host". Se o servidor estiver na mesma máquina, pode-se usar localhost.
+Inserir a porta do servidor (12345) no campo "Porta".
+Pressionar o botão "Conectar" para estabelecer a conexão com o servidor.
+3. Enviar Texto ou Arquivo:
+Após se conectar ao servidor, o cliente poderá:
+Pressionar o botão "Enviar Texto", que abrirá uma caixa de diálogo para o usuário digitar o texto. O texto será enviado para o servidor.
+Pressionar o botão "Enviar Arquivo", que abrirá um explorador de arquivos para selecionar um arquivo. O arquivo será enviado para o servidor.
+4. Recebendo Respostas do Servidor:
+O servidor processa o dado recebido (texto ou arquivo) e salva-o localmente:
+O texto é salvo em um arquivo chamado texto_recebido.txt.
+O arquivo é salvo com o nome arquivo_recebido no formato binário.
+O cliente receberá uma resposta do servidor, que será exibida na área de texto da interface gráfica, indicando se o dado foi recebido com sucesso ou se houve algum erro.
+5. Logs do Servidor:
+A interface gráfica do servidor exibe os seguintes eventos:
+Mensagens informando quando um cliente se conectou.
+Mensagens de confirmação quando um texto ou arquivo foi recebido e salvo.
+Mensagens de erro em caso de problemas com o formato dos dados enviados.

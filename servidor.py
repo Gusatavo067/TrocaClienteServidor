@@ -1,74 +1,95 @@
-import socket
-import threading
-import tkinter as tk
-from tkinter import scrolledtext
+import socket  # Importa a biblioteca socket para comunicação via rede
+import threading  # Importa threading para suportar múltiplas conexões simultâneas
+import tkinter as tk  # Importa o tkinter para a criação da interface gráfica
+from tkinter import scrolledtext  # Importa a funcionalidade de texto com barra de rolagem
 
-def id_Cliente(conn, text_area):
+# Função que lida com o cliente conectado
+def id_Cliente(conexao, area_texto):
     try:
-        data_type = conn.recv(1024).decode().strip()
-        if data_type == 'TYPE text':
-            data = conn.recv(1024).decode().strip()
-            if data.startswith('DATA '):
-                text = data[5:]
-                with open('received_text.txt', 'w') as file:
-                    file.write(text)
-                conn.sendall(b'Valido\n')
-                text_area.insert(tk.END, "Texto recebido e salvo.\n")
+        # Recebe o tipo de dado enviado pelo cliente (texto ou arquivo)
+        tipo_dado = conexao.recv(1024).decode().strip()
+        
+        if tipo_dado == 'TYPE text':  # Se o dado for do tipo texto
+            dado = conexao.recv(1024).decode().strip()  # Recebe o dado
+            if dado.startswith('DATA '):  # Verifica se o dado começa com "DATA"
+                texto = dado[5:]  # Extrai o texto após "DATA"
+                # Salva o texto recebido em um arquivo
+                with open('texto_recebido.txt', 'w') as arquivo:
+                    arquivo.write(texto)
+                conexao.sendall(b'Valido\n')  # Envia uma confirmação ao cliente
+                area_texto.insert(tk.END, "Texto recebido e salvo.\n")  # Mostra uma mensagem na interface
             else:
-                conn.sendall(b'ERROR Formato Data Invalido\n')
-                text_area.insert(tk.END, "Erro: Formato de texto inválido.\n")
-        elif data_type == 'TYPE file':
-            data = conn.recv(1024)
-            if data.startswith(b'DATA '):
-                contem = data[5:]
-                with open('received_file', 'wb') as file:
-                    file.write(contem)
-                conn.sendall(b'Valido\n')
-                text_area.insert(tk.END, "Arquivo recebido e salvo.\n")
+                # Envia uma mensagem de erro ao cliente caso o formato seja inválido
+                conexao.sendall(b'ERROR Formato Data Invalido\n')
+                area_texto.insert(tk.END, "Erro: Formato de texto inválido.\n")
+        
+        elif tipo_dado == 'TYPE file':  # Se o dado for do tipo arquivo
+            dado = conexao.recv(1024)  # Recebe o arquivo em formato binário
+            if dado.startswith(b'DATA '):  # Verifica se o dado começa com "DATA"
+                conteudo = dado[5:]  # Extrai o conteúdo do arquivo após "DATA"
+                # Salva o arquivo recebido
+                with open('arquivo_recebido', 'wb') as arquivo:
+                    arquivo.write(conteudo)
+                conexao.sendall(b'Valido\n')  # Envia uma confirmação ao cliente
+                area_texto.insert(tk.END, "Arquivo recebido e salvo.\n")  # Mostra uma mensagem na interface
             else:
-                conn.sendall(b'ERROR Formato Data Invalido\n')
-                text_area.insert(tk.END, "Erro: Formato de arquivo inválido.\n")
-        else:
-            conn.sendall(b'ERROR Tipo Invalido\n')
-            text_area.insert(tk.END, "Erro: Tipo de dado inválido.\n")
-    except Exception as e:
-        conn.sendall(f'ERROR {str(e)}\n'.encode())
-        text_area.insert(tk.END, f"Erro: {str(e)}\n")
-
-class ServerApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Servidor")
+                # Envia uma mensagem de erro ao cliente caso o formato seja inválido
+                conexao.sendall(b'ERROR Formato Data Invalido\n')
+                area_texto.insert(tk.END, "Erro: Formato de arquivo inválido.\n")
         
-        self.text_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=20)
-        self.text_area.pack(padx=10, pady=10)
+        else:  # Se o tipo de dado não for reconhecido
+            conexao.sendall(b'ERROR Tipo Invalido\n')  # Envia uma mensagem de erro ao cliente
+            area_texto.insert(tk.END, "Erro: Tipo de dado inválido.\n")
+    
+    except Exception as e:  # Em caso de exceção
+        # Envia o erro ao cliente e exibe na interface
+        conexao.sendall(f'ERROR {str(e)}\n'.encode())
+        area_texto.insert(tk.END, f"Erro: {str(e)}\n")
+
+# Classe que representa a aplicação do servidor
+class AppServidor:
+    def __init__(self, raiz):
+        self.raiz = raiz
+        self.raiz.title("Servidor")  # Define o título da janela
         
-        self.start_button = tk.Button(root, text="Iniciar Servidor", command=self.start_server)
-        self.start_button.pack(pady=10)
+        # Área de texto com rolagem para mostrar informações e logs do servidor
+        self.area_texto = scrolledtext.ScrolledText(raiz, wrap=tk.WORD, width=50, height=20)
+        self.area_texto.pack(padx=10, pady=10)
         
-        self.server_socket = None
-        self.is_running = False
+        # Botão para iniciar o servidor
+        self.botao_iniciar = tk.Button(raiz, text="Iniciar Servidor", command=self.iniciar_servidor)
+        self.botao_iniciar.pack(pady=10)
+        
+        self.socket_servidor = None  # Inicialmente, o socket do servidor é None
+        self.servidor_ativo = False  # Variável para indicar se o servidor está em execução
 
-    def start_server(self):
-        if not self.is_running:
-            self.is_running = True
-            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server_socket.bind(('', 12345))
-            self.server_socket.listen()
-            self.text_area.insert(tk.END, "Servidor iniciado e aguardando conexões...\n")
-            threading.Thread(target=self.accept_connections).start()
+    # Função para iniciar o servidor
+    def iniciar_servidor(self):
+        if not self.servidor_ativo:  # Verifica se o servidor já está em execução
+            self.servidor_ativo = True
+            # Cria um socket de servidor
+            self.socket_servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket_servidor.bind(('', 12345))  # Associa o socket à porta 12345
+            self.socket_servidor.listen()  # O servidor começa a escutar conexões
+            self.area_texto.insert(tk.END, "Servidor iniciado e aguardando conexões...\n")
+            # Cria uma nova thread para aceitar conexões simultaneamente
+            threading.Thread(target=self.aceitar_conexoes).start()
 
-    def accept_connections(self):
-        while self.is_running:
-            conn, addr = self.server_socket.accept()
-            self.text_area.insert(tk.END, f"Conectado por {addr}\n")
-            threading.Thread(target=self.handle_client, args=(conn,)).start()
+    # Função para aceitar conexões de clientes
+    def aceitar_conexoes(self):
+        while self.servidor_ativo:  # Enquanto o servidor estiver ativo
+            conexao, endereco = self.socket_servidor.accept()  # Aceita uma conexão
+            self.area_texto.insert(tk.END, f"Conectado por {endereco}\n")  # Mostra quem conectou
+            # Cria uma nova thread para lidar com o cliente conectado
+            threading.Thread(target=self.tratar_cliente, args=(conexao,)).start()
 
-    def handle_client(self, conn):
-        with conn:
-            id_Cliente(conn, self.text_area)
+    # Função que trata as requisições de um cliente
+    def tratar_cliente(self, conexao):
+        with conexao:  # Garante que a conexão será fechada corretamente
+            id_Cliente(conexao, self.area_texto)  # Chama a função que processa o cliente
 
+# Função principal para iniciar a interface gráfica
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = ServerApp(root)
-    root.mainloop()
+    raiz = tk.Tk()  # Cria a janela principal
+    app = AppServidor(raiz)  # Inicializa a aplicação do servidor
+    raiz.mainloop()  # Inicia o loop da interface gráfica
