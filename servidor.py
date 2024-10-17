@@ -60,6 +60,10 @@ class AppServidor:
         self.botao_iniciar = tk.Button(raiz, text="Iniciar Servidor", command=self.iniciar_servidor)
         self.botao_iniciar.pack(pady=10)
         
+        # Botão para encerrar o servidor
+        self.botao_encerrar = tk.Button(raiz, text="Encerrar Servidor", command=self.encerrar_servidor)
+        self.botao_encerrar.pack(pady=10)
+        
         self.socket_servidor = None  # Inicialmente, o socket do servidor é None
         self.servidor_ativo = False  # Variável para indicar se o servidor está em execução
 
@@ -78,15 +82,25 @@ class AppServidor:
     # Função para aceitar conexões de clientes
     def aceitar_conexoes(self):
         while self.servidor_ativo:  # Enquanto o servidor estiver ativo
-            conexao, endereco = self.socket_servidor.accept()  # Aceita uma conexão
-            self.area_texto.insert(tk.END, f"Conectado por {endereco}\n")  # Mostra quem conectou
-            # Cria uma nova thread para lidar com o cliente conectado
-            threading.Thread(target=self.tratar_cliente, args=(conexao,)).start()
+            try:
+                conexao, endereco = self.socket_servidor.accept()  # Aceita uma conexão
+                self.area_texto.insert(tk.END, f"Conectado por {endereco}\n")  # Mostra quem conectou
+                # Cria uma nova thread para lidar com o cliente conectado
+                threading.Thread(target=self.tratar_cliente, args=(conexao,)).start()
+            except OSError:
+                break  # Sai do loop se o socket for fechado
 
     # Função que trata as requisições de um cliente
     def tratar_cliente(self, conexao):
         with conexao:  # Garante que a conexão será fechada corretamente
             id_Cliente(conexao, self.area_texto)  # Chama a função que processa o cliente
+
+    # Função para encerrar o servidor
+    def encerrar_servidor(self):
+        if self.servidor_ativo:
+            self.servidor_ativo = False
+            self.socket_servidor.close()  # Fecha o socket do servidor
+            self.area_texto.insert(tk.END, "Servidor encerrado.\n")
 
 # Função principal para iniciar a interface gráfica
 if __name__ == "__main__":

@@ -1,0 +1,35 @@
+import java.awt.*;
+import java.awt.Color;
+import javax.swing.*;
+
+public class ChessGUI extends JFrame {
+    private JPanel boardPanel;
+    private JButton[][] boardSquares;
+
+    public ChessGUI() {
+        setTitle("Chess Game");
+        setSize(600, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        boardPanel = new JPanel(new GridLayout(8, 8));
+        boardSquares = new JButton[8][8];
+
+        initializeBoard();
+
+        add(boardPanel, BorderLayout.CENTER);
+        setVisible(true);
+    }
+
+    private void initializeBoard() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                boardSquares[i][j] = new JButton();
+                boardSquares[i][j].setPreferredSize(new Dimension(60, 60));
+                boardSquares[i][j].setBackground((i + j) % 2 == 0 ? Color.WHITE : Color.GRAY);
+                boardPanel.add(boardSquares[i][j]);
+            }
+        }
+    }
+
+    
